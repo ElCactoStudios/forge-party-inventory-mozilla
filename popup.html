@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Party Inventory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 460px;
+      min-height: 200px;
+      background: #0f0f14;
+      color: #ddd;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    header {
+      background: #16161e;
+      border-bottom: 1px solid #2a2040;
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 20px; height: 20px;
+      border: 2px solid #a78bfa;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-dot { width: 7px; height: 7px; background: #a78bfa; border-radius: 50%; }
+
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 0.1em; color: #fff; text-transform: uppercase; }
+    .subtitle { font-size: 10px; color: #555; letter-spacing: 0.05em; margin-left: auto; }
+
+    .controls {
+      padding: 9px 16px;
+      display: flex;
+      gap: 8px;
+      background: #16161e;
+      border-bottom: 1px solid #1e1e2e;
+      align-items: center;
+    }
+
+    button {
+      background: #1e1e2e;
+      border: 1px solid #2a2040;
+      color: #aaa;
+      padding: 5px 11px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      transition: all 0.15s;
+    }
+    button:hover { border-color: #a78bfa; color: #a78bfa; }
+    button.primary { background: #a78bfa22; border-color: #a78bfa; color: #a78bfa; }
+    button.primary:hover { background: #a78bfa33; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.csv-btn { background: #28cc7122; border-color: #28cc71; color: #28cc71; margin-left: auto; }
+    button.csv-btn:hover { background: #28cc7133; }
+
+    .status-bar {
+      padding: 6px 16px;
+      background: #0a0a12;
+      border-bottom: 1px solid #1a1a2e;
+      font-size: 10px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #555; flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.found { background: #a78bfa; }
+    .status-dot.visible { background: #28cc71; }
+    .status-dot.error { background: #ff6b6b; }
+
+    .status-text { color: #888; }
+    .status-text.ok { color: #28cc71; }
+    .status-text.warn { color: #f4c842; }
+    .status-text.err { color: #ff6b6b; }
+
+    .stats-bar {
+      display: none;
+      padding: 7px 16px;
+      background: #0a0a12;
+      border-bottom: 1px solid #1a1a2e;
+      gap: 16px;
+    }
+    .stats-bar.visible { display: flex; }
+    .stat { display: flex; flex-direction: column; gap: 2px; }
+    .stat-label { font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
+    .stat-value { font-size: 11px; color: #a78bfa; }
+
+    .output {
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .output::-webkit-scrollbar { width: 4px; }
+    .output::-webkit-scrollbar-track { background: #111; }
+    .output::-webkit-scrollbar-thumb { background: #2a2040; border-radius: 2px; }
+
+    .placeholder {
+      color: #fff;
+      text-align: center;
+      padding: 36px 20px;
+      line-height: 1.9;
+    }
+    .placeholder .icon { font-size: 28px; margin-bottom: 10px; opacity: 0.35; }
+
+    .error-msg {
+      color: #ff6b6b;
+      padding: 20px 16px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .loading {
+      color: #a78bfa;
+      text-align: center;
+      padding: 30px;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Inventory table */
+    .type-section { border-bottom: 1px solid #1a1a2e; }
+    .type-header {
+      padding: 6px 16px;
+      background: #13131c;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .type-header h3 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #a78bfa;
+      font-weight: bold;
+    }
+    .type-count {
+      font-size: 9px;
+      background: #2a2040;
+      color: #a78bfa;
+      border-radius: 8px;
+      padding: 1px 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead tr { background: #0d0d18; }
+    thead th {
+      padding: 5px 8px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #666;
+      text-align: left;
+      font-weight: normal;
+    }
+    thead th:not(:first-child) { text-align: right; }
+
+    tbody tr { border-top: 1px solid #17172a; transition: background 0.1s; }
+    tbody tr:hover { background: #1a1a2e; }
+    tbody td { padding: 5px 8px; font-size: 11px; color: #ccc; }
+    tbody td.name-cell { color: #e8e8e8; }
+    tbody td:not(.name-cell) { text-align: right; color: #888; }
+    tbody td.price-cell { color: #f4c842; }
+    tbody td.qty-cell { color: #28cc71; }
+
+    .empty-type { padding: 6px 16px 8px; font-size: 10px; color: #333; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="logo-dot"></div></div>
+  <span class="title">Party Inventory</span>
+  <span class="subtitle" id="timestamp">forge-vtt.com</span>
+</header>
+
+<div class="controls">
+  <button class="primary" id="readBtn">▶ Scan Inventory</button>
+  <button id="clearBtn">✕ Clear</button>
+  <button class="csv-btn" id="csvBtn" style="display:none">⬇ Download CSV</button>
+</div>
+
+<div class="status-bar">
+  <div class="status-dot" id="statusDot"></div>
+  <span class="status-text" id="statusText">Waiting…</span>
+</div>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat">
+    <span class="stat-label">Total Items</span>
+    <span class="stat-value" id="statItems">—</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Categories</span>
+    <span class="stat-value" id="statCats">—</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Scanned</span>
+    <span class="stat-value" id="statTime">—</span>
+  </div>
+</div>
+
+<div class="output" id="output">
+  <div class="placeholder">
+    <div class="icon">⚔</div>
+    Open the <strong style="color:#a78bfa">Party Sheet</strong> Stash tab<br>
+    then click <strong style="color:#a78bfa">Scan Inventory</strong>
+  </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

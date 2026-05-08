@@ -1,0 +1,5 @@
+# packaging directory
+pkg/*
+
+# Jetbrains IDE
+.idea/*

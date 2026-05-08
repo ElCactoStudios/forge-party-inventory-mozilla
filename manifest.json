@@ -1,0 +1,35 @@
+{
+  "manifest_version": 2,
+  "name": "Forge VTT Party Inventory",
+  "version": "2.2",
+  "description": "Reads and exports the party stash inventory @ForgeVTT",
+  "permissions": [
+    "activeTab"
+  ],
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "Party Inventory",
+    "default_icon": {
+      "32": "pack.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.forge-vtt.com/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "32": "pack.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "@forge-vtt-party-inventory",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}
